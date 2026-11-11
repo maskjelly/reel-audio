@@ -1,7 +1,8 @@
-"""Folder pickers: native dialog (macOS Finder / tkinter), with a keyboard-driven terminal browser fallback."""
+"""Folder pickers: native dialog (macOS Finder, Linux zenity/kdialog, tkinter), with a keyboard-driven terminal browser fallback."""
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +25,15 @@ def pick_native(start: Path) -> Path | None:
         if "-128" in r.stderr:  # user cancelled
             return None
         raise RuntimeError(r.stderr.strip() or "Finder dialog unavailable")
+    # Linux desktops: GTK (zenity) or KDE (kdialog) dialogs; exit code 1 means cancelled.
+    for cmd in (["zenity", "--file-selection", "--directory", f"--title={PROMPT}", f"--filename={start}/"],
+                ["kdialog", "--title", PROMPT, "--getexistingdirectory", str(start)]):
+        if shutil.which(cmd[0]):
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if r.returncode == 0 and r.stdout.strip():
+                return Path(r.stdout.strip())
+            if r.returncode == 1:
+                return None
     try:
         import tkinter
         from tkinter import filedialog
@@ -108,7 +118,7 @@ def pick_terminal(start: Path) -> Path | None:
 
 
 def pick_folder(start: Path, terminal: bool = False) -> Path | None:
-    if not terminal and (sys.platform == "darwin" or os.environ.get("DISPLAY") or os.name == "nt"):
+    if not terminal and (sys.platform == "darwin" or os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
         try:
             return pick_native(start)
         except RuntimeError:

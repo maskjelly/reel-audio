@@ -1,11 +1,27 @@
 import json
 import os
+import shutil
+import subprocess
 from pathlib import Path
 
 from .core import random_name
 
 CONFIG_FILE = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "reel-audio" / "config.json"
-DEFAULT_PARENT = Path.home() / "Downloads"
+
+
+def _downloads_dir() -> Path:
+    """~/Downloads, or the localized XDG download folder on Linux."""
+    if shutil.which("xdg-user-dir"):
+        try:
+            out = subprocess.run(["xdg-user-dir", "DOWNLOAD"], capture_output=True, text=True).stdout.strip()
+            if out and Path(out) != Path.home():
+                return Path(out)
+        except OSError:
+            pass
+    return Path.home() / "Downloads"
+
+
+DEFAULT_PARENT = _downloads_dir()
 
 
 def load() -> dict:

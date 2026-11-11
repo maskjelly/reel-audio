@@ -99,8 +99,14 @@ def _add_alias() -> None:
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*", name):
         print("      ✗ invalid alias name, skipped")
         return
-    rc = Path.home() / (".bashrc" if os.environ.get("SHELL", "").endswith("bash") else ".zshrc")
+    shell = os.path.basename(os.environ.get("SHELL", ""))
+    rc = {"zsh": Path.home() / ".zshrc", "bash": Path.home() / ".bashrc",
+          "fish": Path.home() / ".config" / "fish" / "config.fish"}.get(shell)
     line = f"alias {name}='reel-audio'"
+    if rc is None:
+        print(f"      add this to your shell config: {line}")
+        return
+    rc.parent.mkdir(parents=True, exist_ok=True)
     if rc.exists() and line in rc.read_text():
         print(f"      ✓ alias already in {rc}")
         return

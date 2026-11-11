@@ -9,10 +9,16 @@ $ reel-audio https://www.instagram.com/reel/DRevbteiTt6/
 
 ## Install
 
-Needs [uv](https://docs.astral.sh/uv/) and ffmpeg:
+Needs [uv](https://docs.astral.sh/uv/) and ffmpeg.
 
 ```sh
+# macOS
 brew install uv ffmpeg
+
+# Linux
+sudo apt install ffmpeg            # or dnf / pacman
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 uv tool install git+https://github.com/maskjelly/reel-audio
 reel-audio setup
 ```
@@ -32,13 +38,13 @@ reel-audio --cookies-from-browser chrome <url>   # private reels / rate limits
 `setup` asks for one, or add it yourself:
 
 ```sh
-echo "alias song='reel-audio'" >> ~/.zshrc && source ~/.zshrc
+echo "alias song='reel-audio'" >> ~/.zshrc && source ~/.zshrc   # bash: ~/.bashrc
 song <reel url>
 ```
 
 ## Notes
 
-- Songs go in a random folder inside the location you picked (default `~/Downloads`). Config: `~/.config/reel-audio/config.json`.
+- Songs go in a random folder inside the location you picked (default: your Downloads folder). Config: `~/.config/reel-audio/config.json`.
 - Reels with "Original audio" (no song name) are skipped with an error.
 - The song is found by searching YouTube for "artist - title". The top result is usually right, but not always.
 - If YouTube downloads start failing, `brew install deno`.
